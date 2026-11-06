@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificador de Senhas</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: grid; place-items: center;
+      padding: 24px; font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #101827, #203b5c); color: #f4f7fb;
+    }
+    main {
+      width: min(100%, 520px); background: #fff; color: #172033;
+      padding: 30px; border-radius: 18px; box-shadow: 0 18px 50px #0005;
+    }
+    h1 { margin-top: 0; color: #183b63; }
+    p { line-height: 1.5; color: #526071; }
+    label { display: block; font-weight: bold; margin: 22px 0 8px; }
+    .field { display: flex; gap: 8px; }
+    input {
+      flex: 1; min-width: 0; padding: 13px; border: 1px solid #bdc8d5;
+      border-radius: 9px; font-size: 16px;
+    }
+    button {
+      border: 0; border-radius: 9px; padding: 12px 15px; cursor: pointer;
+      background: #1769aa; color: white; font-weight: bold;
+    }
+    button:hover { background: #0e4f85; }
+    .meter { height: 12px; background: #e4e9ef; border-radius: 20px; margin: 18px 0 10px; overflow: hidden; }
+    #fill { height: 100%; width: 0; background: #9aa5b1; transition: width .2s; }
+    #status { font-weight: bold; margin: 8px 0 16px; }
+    ul { padding-left: 22px; line-height: 1.9; }
+    .ok { color: #16834a; }
+    .no { color: #a34a37; }
+    .note { margin-top: 22px; padding: 12px; border-radius: 9px; background: #eef5fb; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Verificador de Senhas</h1>
+    <p>Aprenda a avaliar se uma senha possui características que ajudam a protegê-la.</p>
+
+    <label for="password">Digite uma senha de exemplo:</label>
+    <div class="field">
+      <input id="password" type="password" placeholder="Digite uma senha fictícia" autocomplete="off">
+      <button id="toggle" type="button">Mostrar</button>
+    </div>
+
+    <div class="meter"><div id="fill"></div></div>
+    <div id="status" aria-live="polite">Digite uma senha para começar.</div>
+
+    <strong>Critérios avaliados:</strong>
+    <ul>
+      <li id="length" class="no">✗ 8 ou mais caracteres</li>
+      <li id="upper" class="no">✗ Letra maiúscula</li>
+      <li id="lower" class="no">✗ Letra minúscula</li>
+      <li id="number" class="no">✗ Número</li>
+      <li id="symbol" class="no">✗ Símbolo (ex.: !, @, #)</li>
+    </ul>
+
+    <div class="note">
+      <strong>Privacidade:</strong> esta página faz a análise no próprio navegador.
+      A senha digitada não é enviada nem armazenada. Use apenas senhas fictícias
+      durante a demonstração.
+    </div>
+  </main>
+
+  <script>
+    const campo = document.getElementById("password");
+    const fill = document.getElementById("fill");
+    const status = document.getElementById("status");
+
+    const regras = [
+      { id: "length", teste: s => s.length >= 8 },
+      { id: "upper", teste: s => /[A-Z]/.test(s) },
+      { id: "lower", teste: s => /[a-z]/.test(s) },
+      { id: "number", teste: s => /[0-9]/.test(s) },
+      { id: "symbol", teste: s => /[^A-Za-z0-9]/.test(s) }
+    ];
+
+    function avaliarSenha() {
+      const senha = campo.value;
+      let pontos = 0;
+
+      regras.forEach(regra => {
+        const passou = regra.teste(senha);
+        const item = document.getElementById(regra.id);
+        item.className = passou ? "ok" : "no";
+        item.textContent = (passou ? "✓ " : "✗ ") + item.textContent.slice(2);
+        if (passou) pontos++;
+      });
+
+      fill.style.width = (pontos * 20) + "%";
+      if (senha.length === 0) {
+        status.textContent = "Digite uma senha para começar.";
+        fill.style.background = "#9aa5b1";
+      } else if (pontos <= 2) {
+        status.textContent = "Nível: fraca — tente cumprir mais critérios.";
+        fill.style.background = "#d65b52";
+      } else if (pontos <= 4) {
+        status.textContent = "Nível: média — ainda pode melhorar.";
+        fill.style.background = "#e0a12f";
+      } else {
+        status.textContent = "Nível: forte — todos os critérios foram cumpridos.";
+        fill.style.background = "#23965b";
+      }
+    }
+
+    campo.addEventListener("input", avaliarSenha);
+    document.getElementById("toggle").addEventListener("click", function () {
+      const escondida = campo.type === "password";
+      campo.type = escondida ? "text" : "password";
+      this.textContent = escondida ? "Ocultar" : "Mostrar";
+    });
+  </script>
+</body>
+</html>
